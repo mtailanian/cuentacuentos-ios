@@ -32,6 +32,7 @@ struct StoryFormView: View {
             }
             
                 Button(action: {
+                    HapticManager.impact(style: .medium)
                     validateAndSubmit()
                 }) {
                     HStack {

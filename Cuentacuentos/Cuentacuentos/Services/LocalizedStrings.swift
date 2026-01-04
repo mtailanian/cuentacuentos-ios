@@ -46,6 +46,11 @@ struct LocalizedStrings {
             "saved.delete": "Eliminar",
             "saved.voice": "Voz:",
             "saved.auto": "Auto",
+            "saved.search.placeholder": "Buscar historias...",
+            "saved.favorite": "Favorito",
+            "saved.unfavorite": "Quitar favorito",
+            "saved.no.results": "No se encontraron resultados",
+            "saved.no.results.hint": "Intenta con otros términos de búsqueda o desactiva el filtro de favoritos",
             
             // Audio player
             "audio.play": "Reproducir",
@@ -86,6 +91,8 @@ struct LocalizedStrings {
             "profile.settings.section": "Ajustes",
             "profile.notifications": "Notificaciones",
             "profile.mock.note": "Funciones simuladas por ahora",
+            "profile.default.age": "Edad objetivo por defecto",
+            "profile.default.age.hint": "Esta edad se usará para todas las historias generadas",
             
             // Defaults
             "form.default.name": "Amigo",
@@ -108,6 +115,14 @@ struct LocalizedStrings {
             
             // Generate header
             "generate.title": "Crea una historia mágica",
+            
+            // Chat interface
+            "chat.input.placeholder": "Describe la historia que quieres...",
+            "chat.input.hint": "Deja vacío para un tema aleatorio",
+            "chat.welcome.title": "¡Hola! 👋",
+            "chat.welcome.subtitle": "Cuéntame qué tipo de historia quieres crear. Puedo hacer historias sobre cualquier tema.",
+            "chat.story.generated": "¡Aquí está tu historia!",
+            "chat.error.message": "Lo siento, hubo un error",
             
             // UI Language selector
             "ui.language": "Idioma de la interfaz"
@@ -151,6 +166,11 @@ struct LocalizedStrings {
             "saved.delete": "Delete",
             "saved.voice": "Voice:",
             "saved.auto": "Auto",
+            "saved.search.placeholder": "Search stories...",
+            "saved.favorite": "Favorite",
+            "saved.unfavorite": "Unfavorite",
+            "saved.no.results": "No results found",
+            "saved.no.results.hint": "Try different search terms or disable favorites filter",
             
             // Audio player
             "audio.play": "Play",
@@ -191,6 +211,8 @@ struct LocalizedStrings {
             "profile.settings.section": "Settings",
             "profile.notifications": "Notifications",
             "profile.mock.note": "These items are mocked for now",
+            "profile.default.age": "Default target age",
+            "profile.default.age.hint": "This age will be used for all generated stories",
             
             // Defaults
             "form.default.name": "Friend",
@@ -213,6 +235,14 @@ struct LocalizedStrings {
             
             // Generate header
             "generate.title": "Create a magical story",
+            
+            // Chat interface
+            "chat.input.placeholder": "Describe the story you want...",
+            "chat.input.hint": "Leave empty for a random topic",
+            "chat.welcome.title": "Hello! 👋",
+            "chat.welcome.subtitle": "Tell me what kind of story you'd like to create. I can make stories about anything.",
+            "chat.story.generated": "Here's your story!",
+            "chat.error.message": "Sorry, there was an error",
             
             // UI Language selector
             "ui.language": "Interface Language"
@@ -249,6 +279,11 @@ struct LocalizedStrings {
             "saved.delete": "Supprimer",
             "saved.voice": "Voix:",
             "saved.auto": "Auto",
+            "saved.search.placeholder": "Rechercher des histoires...",
+            "saved.favorite": "Favori",
+            "saved.unfavorite": "Retirer des favoris",
+            "saved.no.results": "Aucun résultat trouvé",
+            "saved.no.results.hint": "Essayez d'autres termes de recherche ou désactivez le filtre des favoris",
             "audio.play": "Lire",
             "audio.playing": "En cours",
             "audio.pause": "Pause",
@@ -282,7 +317,9 @@ struct LocalizedStrings {
             "profile.payment.iap": "Achats intégrés (bientôt)",
             "profile.settings.section": "Réglages",
             "profile.notifications": "Notifications",
-            "profile.mock.note": "Ces éléments sont simulés pour l’instant",
+            "profile.mock.note": "Ces éléments sont simulés pour l'instant",
+            "profile.default.age": "Âge cible par défaut",
+            "profile.default.age.hint": "Cet âge sera utilisé pour toutes les histoires générées",
             
             // Defaults
             "form.default.name": "Ami",
@@ -305,6 +342,14 @@ struct LocalizedStrings {
             
             // Generate header
             "generate.title": "Crée une histoire magique",
+            
+            // Chat interface
+            "chat.input.placeholder": "Décris l'histoire que tu veux...",
+            "chat.input.hint": "Laisse vide pour un sujet aléatoire",
+            "chat.welcome.title": "Bonjour ! 👋",
+            "chat.welcome.subtitle": "Dis-moi quel type d'histoire tu aimerais créer. Je peux faire des histoires sur n'importe quel sujet.",
+            "chat.story.generated": "Voici ton histoire !",
+            "chat.error.message": "Désolé, il y a eu une erreur",
             
             "ui.language": "Langue de l'interface"
         ],
@@ -340,6 +385,11 @@ struct LocalizedStrings {
             "saved.delete": "Löschen",
             "saved.voice": "Stimme:",
             "saved.auto": "Auto",
+            "saved.search.placeholder": "Geschichten suchen...",
+            "saved.favorite": "Favorit",
+            "saved.unfavorite": "Aus Favoriten entfernen",
+            "saved.no.results": "Keine Ergebnisse gefunden",
+            "saved.no.results.hint": "Versuchen Sie andere Suchbegriffe oder deaktivieren Sie den Favoritenfilter",
             "audio.play": "Abspielen",
             "audio.playing": "Wiedergabe",
             "audio.pause": "Pause",
@@ -374,6 +424,8 @@ struct LocalizedStrings {
             "profile.settings.section": "Einstellungen",
             "profile.notifications": "Benachrichtigungen",
             "profile.mock.note": "Diese Einträge sind vorerst simuliert",
+            "profile.default.age": "Standard-Zielalter",
+            "profile.default.age.hint": "Dieses Alter wird für alle generierten Geschichten verwendet",
             
             // Defaults
             "form.default.name": "Freund",
@@ -396,6 +448,14 @@ struct LocalizedStrings {
             
             // Generate header
             "generate.title": "Erzähle eine magische Geschichte",
+            
+            // Chat interface
+            "chat.input.placeholder": "Beschreibe die Geschichte, die du willst...",
+            "chat.input.hint": "Leer lassen für ein zufälliges Thema",
+            "chat.welcome.title": "Hallo! 👋",
+            "chat.welcome.subtitle": "Sag mir, welche Art von Geschichte du erstellen möchtest. Ich kann Geschichten über alles machen.",
+            "chat.story.generated": "Hier ist deine Geschichte!",
+            "chat.error.message": "Entschuldigung, es gab einen Fehler",
             
             "ui.language": "Oberflächensprache"
         ],
@@ -431,6 +491,11 @@ struct LocalizedStrings {
             "saved.delete": "Elimina",
             "saved.voice": "Voce:",
             "saved.auto": "Auto",
+            "saved.search.placeholder": "Cerca storie...",
+            "saved.favorite": "Preferito",
+            "saved.unfavorite": "Rimuovi dai preferiti",
+            "saved.no.results": "Nessun risultato trovato",
+            "saved.no.results.hint": "Prova con altri termini di ricerca o disattiva il filtro dei preferiti",
             "audio.play": "Riproduci",
             "audio.playing": "In riproduzione",
             "audio.pause": "Pausa",
@@ -465,6 +530,8 @@ struct LocalizedStrings {
             "profile.settings.section": "Impostazioni",
             "profile.notifications": "Notifiche",
             "profile.mock.note": "Elementi simulati per ora",
+            "profile.default.age": "Età target predefinita",
+            "profile.default.age.hint": "Questa età verrà utilizzata per tutte le storie generate",
             
             // Defaults
             "form.default.name": "Amico",
@@ -487,6 +554,14 @@ struct LocalizedStrings {
             
             // Generate header
             "generate.title": "Crea una storia magica",
+            
+            // Chat interface
+            "chat.input.placeholder": "Descrivi la storia che vuoi...",
+            "chat.input.hint": "Lascia vuoto per un argomento casuale",
+            "chat.welcome.title": "Ciao! 👋",
+            "chat.welcome.subtitle": "Dimmi che tipo di storia vorresti creare. Posso fare storie su qualsiasi argomento.",
+            "chat.story.generated": "Ecco la tua storia!",
+            "chat.error.message": "Scusa, c'è stato un errore",
             
             "ui.language": "Lingua dell'interfaccia"
         ],
@@ -522,6 +597,11 @@ struct LocalizedStrings {
             "saved.delete": "Excluir",
             "saved.voice": "Voz:",
             "saved.auto": "Auto",
+            "saved.search.placeholder": "Buscar histórias...",
+            "saved.favorite": "Favorito",
+            "saved.unfavorite": "Remover dos favoritos",
+            "saved.no.results": "Nenhum resultado encontrado",
+            "saved.no.results.hint": "Tente outros termos de pesquisa ou desative o filtro de favoritos",
             "audio.play": "Reproduzir",
             "audio.playing": "Reproduzindo",
             "audio.pause": "Pausar",
@@ -556,6 +636,8 @@ struct LocalizedStrings {
             "profile.settings.section": "Configurações",
             "profile.notifications": "Notificações",
             "profile.mock.note": "Itens simulados por enquanto",
+            "profile.default.age": "Idade alvo padrão",
+            "profile.default.age.hint": "Esta idade será usada para todas as histórias geradas",
             
             // Defaults
             "form.default.name": "Amigo",
@@ -578,6 +660,14 @@ struct LocalizedStrings {
             
             // Generate header
             "generate.title": "Crie uma história mágica",
+            
+            // Chat interface
+            "chat.input.placeholder": "Descreva a história que você quer...",
+            "chat.input.hint": "Deixe vazio para um tópico aleatório",
+            "chat.welcome.title": "Olá! 👋",
+            "chat.welcome.subtitle": "Me diga que tipo de história você gostaria de criar. Posso fazer histórias sobre qualquer assunto.",
+            "chat.story.generated": "Aqui está sua história!",
+            "chat.error.message": "Desculpe, houve um erro",
             
             "ui.language": "Idioma da interface"
         ],
@@ -613,6 +703,11 @@ struct LocalizedStrings {
             "saved.delete": "削除",
             "saved.voice": "音声：",
             "saved.auto": "自動",
+            "saved.search.placeholder": "ストーリーを検索...",
+            "saved.favorite": "お気に入り",
+            "saved.unfavorite": "お気に入りから削除",
+            "saved.no.results": "結果が見つかりません",
+            "saved.no.results.hint": "別の検索語を試すか、お気に入りフィルターを無効にしてください",
             "audio.play": "再生",
             "audio.playing": "再生中",
             "audio.pause": "一時停止",
@@ -647,6 +742,8 @@ struct LocalizedStrings {
             "profile.settings.section": "設定",
             "profile.notifications": "通知",
             "profile.mock.note": "現在はモック表示です",
+            "profile.default.age": "デフォルトの対象年齢",
+            "profile.default.age.hint": "この年齢は生成されるすべての物語に使用されます",
             
             // Defaults
             "form.default.name": "ともだち",
@@ -669,6 +766,14 @@ struct LocalizedStrings {
             
             // Generate header
             "generate.title": "魔法の物語を作ろう",
+            
+            // Chat interface
+            "chat.input.placeholder": "作りたい物語を説明してください...",
+            "chat.input.hint": "空欄のままにするとランダムなトピックになります",
+            "chat.welcome.title": "こんにちは！👋",
+            "chat.welcome.subtitle": "どんな物語を作りたいか教えてください。どんなテーマでも物語を作ることができます。",
+            "chat.story.generated": "あなたの物語ができました！",
+            "chat.error.message": "申し訳ございませんが、エラーが発生しました",
             
             "ui.language": "インターフェース言語"
         ]

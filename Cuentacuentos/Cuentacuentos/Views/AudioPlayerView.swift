@@ -68,7 +68,7 @@ class AudioPlayerViewModel: NSObject, ObservableObject {
     @Published var isPaused = false
     @Published var isLoading = false
     
-    private var audioPlayer: AVAudioPlayer?
+    var audioPlayer: AVAudioPlayer?
     private var speechSynthesizer = AVSpeechSynthesizer()
     private let storyService = StoryService()
     
@@ -143,12 +143,23 @@ class AudioPlayerViewModel: NSObject, ObservableObject {
         isPaused = true
     }
     
+    func resume() {
+        audioPlayer?.play()
+        speechSynthesizer.continueSpeaking()
+        isPlaying = true
+        isPaused = false
+    }
+    
     func stop() {
         audioPlayer?.stop()
         audioPlayer?.currentTime = 0
         speechSynthesizer.stopSpeaking(at: .immediate)
         isPlaying = false
         isPaused = false
+    }
+    
+    func seek(to time: TimeInterval) {
+        audioPlayer?.currentTime = time
     }
 }
 

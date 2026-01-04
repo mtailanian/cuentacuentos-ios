@@ -3,77 +3,227 @@ import SwiftUI
 struct GenerateStoryView: View {
     @ObservedObject var localizationManager: LocalizationManager = .shared
     @EnvironmentObject var themeManager: ThemeManager
+    @ObservedObject var keyboardManager: KeyboardManager
     
     @Binding var formValues: StoryFormValues
     @Binding var isLoading: Bool
     @Binding var error: String
     @Binding var currentStory: Story?
+    @Binding var messages: [ChatMessage]
     
     let onSubmit: () -> Void
     let onSave: () -> Void
     let onShare: () -> Void
+    let onToggleFavorite: (() -> Void)?
+    
+    @State private var inputMessage: String = ""
+    @State private var scrollProxy: ScrollViewProxy?
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 16) {
-                    headerCard
-                    
-                    VStack(spacing: 14) {
-                        StoryFormView(
-                            formValues: $formValues,
-                            onSubmit: onSubmit,
-                            isLoading: isLoading
-                        )
-                        
-                        if !error.isEmpty {
-                            Text(error)
-                                .font(AppTheme.roundedFont(.caption, weight: .semibold))
-                                .foregroundColor(.red)
-                                .padding()
+            ZStack {
+                ThemeBackgroundView(theme: themeManager.current)
+                
+                // Chat messages - full screen
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(spacing: 0) {
+                            // Welcome message
+                            if messages.isEmpty {
+                                welcomeMessage
+                                    .padding(.top, 40)
+                            }
+                            
+                            // Chat messages
+                            ForEach(messages) { message in
+                                ChatBubbleView(
+                                    message: message,
+                                    onSave: message.story != nil ? onSave : nil,
+                                    onShare: message.story != nil ? onShare : nil,
+                                    onToggleFavorite: message.story != nil ? onToggleFavorite : nil
+                                )
+                                .id(message.id)
+                            }
+                            
+                            // Loading indicator
+                            if isLoading {
+                                HStack(alignment: .top, spacing: 12) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(themeManager.current.accentGradient)
+                                            .frame(width: 32, height: 32)
+                                        Image(systemName: "sparkles")
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .foregroundColor(.white)
+                                    }
+                                    
+                                    HStack(spacing: 4) {
+                                        ForEach(0..<3) { index in
+                                            Circle()
+                                                .fill(Color.secondary.opacity(0.6))
+                                                .frame(width: 8, height: 8)
+                                                .offset(y: isLoading ? -6 : 0)
+                                                .animation(
+                                                    Animation.easeInOut(duration: 0.6)
+                                                        .repeatForever()
+                                                        .delay(Double(index) * 0.2),
+                                                    value: isLoading
+                                                )
+                                        }
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(20, corners: [.topLeft, .topRight, .bottomRight])
+                                }
                                 .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .id("loading")
+                            }
+                            
+                            // Error message
+                            if !error.isEmpty {
+                                HStack {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundColor(.red)
+                                    Text(error)
+                                        .font(AppTheme.roundedFont(.subheadline))
+                                        .foregroundColor(.red)
+                                }
+                                .padding()
                                 .background(Color.red.opacity(0.1))
-                                .cornerRadius(AppTheme.Radii.medium)
+                                .cornerRadius(12)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                            }
+                            
+                            // Bottom padding for input area (input height ~100 + keyboard when visible)
+                            Spacer()
+                                .frame(height: keyboardManager.isVisible ? keyboardManager.height + 120 : 120)
                         }
-                        
-                        if let story = currentStory {
-                            StoryDisplayView(
-                                story: story,
-                                onSave: onSave,
-                                onShare: onShare
-                            )
+                    }
+                    .onAppear {
+                        scrollProxy = proxy
+                    }
+                    .onChange(of: messages.count) { _ in
+                        if let lastMessage = messages.last {
+                            withAnimation {
+                                proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                            }
+                        }
+                    }
+                    .onChange(of: isLoading) { loading in
+                        if loading {
+                            withAnimation {
+                                proxy.scrollTo("loading", anchor: .bottom)
+                            }
+                        }
+                    }
+                    .simultaneousGesture(
+                        TapGesture()
+                            .onEnded {
+                                // Dismiss keyboard when tapping on scroll view (but allow scrolling)
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            }
+                    )
+                }
+                
+                // Chat input - overlaid at bottom
+                VStack {
+                    Spacer()
+                    ChatInputView(
+                        message: $inputMessage,
+                        length: $formValues.length,
+                        onSubmit: {
+                            handleSubmit()
+                        },
+                        isLoading: isLoading
+                    )
+                    .padding(.bottom, keyboardManager.isVisible ? 0 : 0)
+                }
+            }
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 20)
+                    .onEnded { value in
+                        // Dismiss keyboard on drag down (swipe down gesture)
+                        if value.translation.height > 100 && keyboardManager.isVisible {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        }
+                    }
+            )
+            .navigationTitle("tab.generate".localized)
+            .navigationBarTitleDisplayMode(.inline)
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notification in
+                // Scroll to bottom when keyboard appears
+                if let lastMessage = messages.last {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        withAnimation {
+                            scrollProxy?.scrollTo(lastMessage.id, anchor: .bottom)
                         }
                     }
                 }
-                .padding()
             }
-            .background(ThemeBackgroundView(theme: themeManager.current))
         }
     }
     
-    private var headerCard: some View {
-        HStack(alignment: .center, spacing: 14) {
+    private var welcomeMessage: some View {
+        VStack(spacing: 16) {
             ZStack {
                 Circle()
                     .fill(themeManager.current.accentGradient)
-                    .frame(width: 60, height: 60)
-                    .shadow(color: AppTheme.Colors.subtleShadow, radius: 10, x: 0, y: 6)
+                    .frame(width: 80, height: 80)
                 Image(systemName: "sparkles")
-                    .font(.system(size: 26, weight: .bold))
-                    .foregroundStyle(.white)
+                    .font(.system(size: 40, weight: .bold))
+                    .foregroundColor(.white)
             }
             
-            VStack(alignment: .leading, spacing: 6) {
-                Text("generate.title".localized)
+            VStack(spacing: 8) {
+                Text("chat.welcome.title".localized)
                     .font(AppTheme.roundedFont(.title2, weight: .bold))
-                    .foregroundColor(.primary)
+                    .multilineTextAlignment(.center)
+                
+                Text("chat.welcome.subtitle".localized)
+                    .font(AppTheme.roundedFont(.subheadline))
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
             }
-            Spacer()
         }
-        .padding()
-        .background(AppTheme.Colors.surface)
-        .cornerRadius(AppTheme.Radii.large)
-        .shadow(color: AppTheme.Colors.subtleShadow, radius: 12, x: 0, y: 8)
+        .padding(32)
+    }
+    
+    private func handleSubmit() {
+        let userMessage = inputMessage.trimmingCharacters(in: .whitespaces)
+        guard !userMessage.isEmpty else { return }
+        
+        // Add user message to chat
+        let userChatMessage = ChatMessage(
+            role: .user,
+            content: userMessage
+        )
+        messages.append(userChatMessage)
+        
+        // Update form values
+        formValues.brief = userMessage
+        inputMessage = ""
+        
+        // Submit
+        onSubmit()
     }
 }
 
+#Preview {
+    GenerateStoryView(
+        keyboardManager: KeyboardManager(),
+        formValues: .constant(StoryFormValues()),
+        isLoading: .constant(false),
+        error: .constant(""),
+        currentStory: .constant(nil),
+        messages: .constant([]),
+        onSubmit: {},
+        onSave: {},
+        onShare: {},
+        onToggleFavorite: nil
+    )
+    .environmentObject(ThemeManager())
+}

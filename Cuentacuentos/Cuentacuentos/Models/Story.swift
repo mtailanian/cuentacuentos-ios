@@ -11,6 +11,56 @@ struct Story: Codable, Identifiable, Hashable {
     var voice: Voice?
     let randomTopic: Bool
     var brief: String?
+    var isFavorite: Bool
+    
+    init(id: String, title: String, content: String, createdAt: String, name: String, age: Int, language: Language, voice: Voice? = nil, randomTopic: Bool, brief: String? = nil, isFavorite: Bool = false) {
+        self.id = id
+        self.title = title
+        self.content = content
+        self.createdAt = createdAt
+        self.name = name
+        self.age = age
+        self.language = language
+        self.voice = voice
+        self.randomTopic = randomTopic
+        self.brief = brief
+        self.isFavorite = isFavorite
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id, title, content, createdAt, name, age, language, voice, randomTopic, brief, isFavorite
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        title = try container.decode(String.self, forKey: .title)
+        content = try container.decode(String.self, forKey: .content)
+        createdAt = try container.decode(String.self, forKey: .createdAt)
+        name = try container.decode(String.self, forKey: .name)
+        age = try container.decode(Int.self, forKey: .age)
+        language = try container.decode(Language.self, forKey: .language)
+        voice = try container.decodeIfPresent(Voice.self, forKey: .voice)
+        randomTopic = try container.decode(Bool.self, forKey: .randomTopic)
+        brief = try container.decodeIfPresent(String.self, forKey: .brief)
+        // Handle backward compatibility: if isFavorite is missing, default to false
+        isFavorite = try container.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(title, forKey: .title)
+        try container.encode(content, forKey: .content)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(name, forKey: .name)
+        try container.encode(age, forKey: .age)
+        try container.encode(language, forKey: .language)
+        try container.encodeIfPresent(voice, forKey: .voice)
+        try container.encode(randomTopic, forKey: .randomTopic)
+        try container.encodeIfPresent(brief, forKey: .brief)
+        try container.encode(isFavorite, forKey: .isFavorite)
+    }
     
     enum Language: String, Codable, CaseIterable {
         case spanish = "spanish"

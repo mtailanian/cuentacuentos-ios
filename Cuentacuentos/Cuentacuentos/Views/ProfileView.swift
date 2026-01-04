@@ -5,7 +5,10 @@ struct ProfileView: View {
     @ObservedObject var localizationManager: LocalizationManager = .shared
     @EnvironmentObject var themeManager: ThemeManager
     
+    private let storageService = StorageService()
+    
     @State private var userName: String = "Alex"
+    @State private var defaultAge: Int = 6
     @State private var credits: Int = 5
     @State private var notificationsEnabled: Bool = true
     @State private var avatarItem: PhotosPickerItem?
@@ -70,6 +73,25 @@ struct ProfileView: View {
                         }
                         .labelsHidden()
                         .pickerStyle(.menu)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("profile.default.age".localized)
+                            .font(AppTheme.roundedFont(.headline, weight: .semibold))
+                        HStack(spacing: 12) {
+                            Text("\(defaultAge)")
+                                .font(AppTheme.roundedFont(.title3, weight: .bold))
+                                .foregroundColor(AppTheme.Colors.accent)
+                            Stepper("", value: $defaultAge, in: 1...15)
+                                .labelsHidden()
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(AppTheme.Radii.large)
+                        Text("profile.default.age.hint".localized)
+                            .font(AppTheme.roundedFont(.caption))
+                            .foregroundColor(.secondary)
                     }
                 }
                 .listRowBackground(AppTheme.Colors.surface)
@@ -148,6 +170,31 @@ struct ProfileView: View {
             .navigationTitle("tab.profile".localized)
             .scrollContentBackground(.hidden)
             .background(ThemeBackgroundView(theme: themeManager.current))
+            .simultaneousGesture(
+                TapGesture()
+                    .onEnded {
+                        // Dismiss keyboard when tapping on list
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
+            )
+        }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 20)
+                .onEnded { value in
+                    // Dismiss keyboard on drag down (swipe down gesture)
+                    if value.translation.height > 100 {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
+                }
+        )
+        .onAppear {
+            loadProfile()
+        }
+        .onChange(of: userName) { newName in
+            saveProfile()
+        }
+        .onChange(of: defaultAge) { newAge in
+            saveProfile()
         }
         .onChange(of: avatarItem) { newItem in
             guard let item = newItem else { return }
@@ -156,10 +203,45 @@ struct ProfileView: View {
                    let image = UIImage(data: data) {
                     await MainActor.run {
                         self.avatarImage = image
+                        saveProfile()
                     }
                 }
             }
         }
+    }
+    
+    private func loadProfile() {
+        if let profile = storageService.loadProfile() {
+            userName = profile.name
+            defaultAge = profile.defaultAge
+            if let avatarData = profile.avatarData {
+                avatarImage = UIImage(data: avatarData)
+            }
+        }
+    }
+    
+    private func saveProfile() {
+        var avatarData: Data? = nil
+        if let image = avatarImage {
+            // Resize image to reasonable size for avatar (max 512x512)
+            let maxSize: CGFloat = 512
+            let resizedImage: UIImage
+            if image.size.width > maxSize || image.size.height > maxSize {
+                let scale = min(maxSize / image.size.width, maxSize / image.size.height)
+                let newSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+                UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
+                image.draw(in: CGRect(origin: .zero, size: newSize))
+                resizedImage = UIGraphicsGetImageFromCurrentImageContext() ?? image
+                UIGraphicsEndImageContext()
+            } else {
+                resizedImage = image
+            }
+            // Convert to JPEG with compression
+            avatarData = resizedImage.jpegData(compressionQuality: 0.75)
+        }
+        
+        let profile = UserProfile(name: userName, avatarData: avatarData, defaultAge: defaultAge)
+        storageService.saveProfile(profile)
     }
 }
 

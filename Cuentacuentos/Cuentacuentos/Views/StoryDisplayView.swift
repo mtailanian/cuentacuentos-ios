@@ -4,6 +4,7 @@ struct StoryDisplayView: View {
     let story: Story
     let onSave: () -> Void
     let onShare: () -> Void
+    let onToggleFavorite: (() -> Void)?
     @StateObject private var localizationManager = LocalizationManager.shared
     @State private var playbackVoice: Story.Voice = .auto
     
@@ -29,8 +30,28 @@ struct StoryDisplayView: View {
                 
                 Spacer()
                 
+                HStack(spacing: 8) {
+                    // Favorite button
+                    if let onToggleFavorite = onToggleFavorite {
+                        Button(action: {
+                            HapticManager.notification(type: story.isFavorite ? .warning : .success)
+                            onToggleFavorite()
+                        }) {
+                            Image(systemName: story.isFavorite ? "heart.fill" : "heart")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(story.isFavorite ? .red : .secondary)
+                                .frame(width: 44, height: 44)
+                                .background(story.isFavorite ? Color.red.opacity(0.1) : Color(.systemGray6))
+                                .cornerRadius(AppTheme.Radii.medium)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                
                 VStack(spacing: 8) {
-                    Button(action: onShare) {
+                        Button(action: {
+                            HapticManager.impact(style: .light)
+                            onShare()
+                        }) {
                         Text("story.share".localized)
                             .font(.caption)
                             .fontWeight(.semibold)
@@ -39,7 +60,10 @@ struct StoryDisplayView: View {
                     }
                     .buttonStyle(.bordered)
                     
-                    Button(action: onSave) {
+                        Button(action: {
+                            HapticManager.notification(type: .success)
+                            onSave()
+                        }) {
                         Text("story.save".localized)
                             .font(.caption)
                             .fontWeight(.semibold)
@@ -47,6 +71,7 @@ struct StoryDisplayView: View {
                             .padding(.vertical, 8)
                     }
                     .buttonStyle(.borderedProminent)
+                    }
                 }
             }
             
@@ -64,28 +89,71 @@ struct StoryDisplayView: View {
             .background(Color.gray.opacity(0.1))
             .cornerRadius(12)
             
-            VStack(alignment: .leading, spacing: 8) {
-                Text("story.playback.voice".localized)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                
-                Picker("story.playback.voice".localized, selection: $playbackVoice) {
-                    ForEach(Story.Voice.allCases, id: \.self) { voice in
-                        Text(voice.displayName).tag(voice)
+            // Playback section inspired by Spotify-style player
+            VStack(spacing: 12) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("story.playback.voice".localized)
+                            .font(AppTheme.roundedFont(.subheadline, weight: .semibold))
+                        Text("story.voice.hint".localized)
+                            .font(AppTheme.roundedFont(.caption))
+                            .foregroundColor(.secondary)
                     }
+                    Spacer()
+                    Picker("", selection: $playbackVoice) {
+                        ForEach(Story.Voice.allCases, id: \.self) { voice in
+                            Text(voice.displayName).tag(voice)
+                        }
+                    }
+                    .pickerStyle(.menu)
                 }
-                .pickerStyle(.menu)
                 
-                Text("story.voice.hint".localized)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                
-                AudioPlayerView(
-                    text: story.content,
-                    language: story.language,
-                    voice: playbackVoice == .auto ? nil : playbackVoice
-                )
+                Button {
+                    HapticManager.impact(style: .medium)
+                    PlayerManager.shared.play(story: story, voice: playbackVoice == .auto ? nil : playbackVoice)
+                } label: {
+                    HStack {
+                        if PlayerManager.shared.isLoading && PlayerManager.shared.currentStory?.id == story.id {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Image(systemName: PlayerManager.shared.isPlaying && PlayerManager.shared.currentStory?.id == story.id ? "pause.fill" : "play.fill")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        Text(PlayerManager.shared.isLoading && PlayerManager.shared.currentStory?.id == story.id ? "audio.preparing".localized : PlayerManager.shared.isPlaying && PlayerManager.shared.currentStory?.id == story.id ? "audio.playing".localized : "audio.play".localized)
+                            .font(AppTheme.roundedFont(.subheadline, weight: .semibold))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .foregroundColor(.white)
+                    .background(
+                        LinearGradient(
+                            colors: [
+                                AppTheme.Colors.primary,
+                                AppTheme.Colors.secondary
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(AppTheme.Radii.medium)
+                }
+                .buttonStyle(.plain)
+                .disabled(PlayerManager.shared.isLoading && PlayerManager.shared.currentStory?.id == story.id)
             }
+            .padding()
+            .background(
+                LinearGradient(
+                    colors: [
+                        AppTheme.Colors.primary.opacity(0.18),
+                        AppTheme.Colors.secondary.opacity(0.16)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .cornerRadius(AppTheme.Radii.large)
+            .shadow(color: AppTheme.Colors.subtleShadow, radius: 6, x: 0, y: 3)
         }
         .padding()
         .background(Color(.systemBackground))
@@ -112,7 +180,8 @@ struct StoryDisplayView: View {
             brief: nil
         ),
         onSave: {},
-        onShare: {}
+        onShare: {},
+        onToggleFavorite: nil
     )
     .padding()
 }
