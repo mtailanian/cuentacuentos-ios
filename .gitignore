@@ -1,0 +1,24 @@
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.DS_Store
+
+# SwiftPM / Carthage / CocoaPods (if added later)
+.build/
+Packages/
+Carthage/
+Pods/
+
+# Fastlane / Archives
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Firebase/GoogleService files (if added; keep out of source unless intended)
+GoogleService-Info.plist
+
+
