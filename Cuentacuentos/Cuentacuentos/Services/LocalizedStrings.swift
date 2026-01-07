@@ -36,6 +36,7 @@ struct LocalizedStrings {
             "story.voice.hint": "Cambia el narrador sin regenerar la historia.",
             "story.save": "Guardar",
             "story.share": "Compartir",
+            "story.text": "Historia",
             
             // Saved stories
             "saved.stories": "Historias guardadas",
@@ -51,6 +52,9 @@ struct LocalizedStrings {
             "saved.unfavorite": "Quitar favorito",
             "saved.no.results": "No se encontraron resultados",
             "saved.no.results.hint": "Intenta con otros términos de búsqueda o desactiva el filtro de favoritos",
+            "saved.delete.confirm": "¿Eliminar historia?",
+            "saved.delete.message": "Esta acción no se puede deshacer.",
+            "cancel": "Cancelar",
             
             // Audio player
             "audio.play": "Reproducir",
@@ -93,6 +97,8 @@ struct LocalizedStrings {
             "profile.mock.note": "Funciones simuladas por ahora",
             "profile.default.age": "Edad objetivo por defecto",
             "profile.default.age.hint": "Esta edad se usará para todas las historias generadas",
+            "profile.default.length": "Duración por defecto",
+            "profile.default.length.hint": "Esta duración se usará para todas las historias generadas",
             
             // Defaults
             "form.default.name": "Amigo",
@@ -122,7 +128,16 @@ struct LocalizedStrings {
             "chat.welcome.title": "¡Hola! 👋",
             "chat.welcome.subtitle": "Cuéntame qué tipo de historia quieres crear. Puedo hacer historias sobre cualquier tema.",
             "chat.story.generated": "¡Aquí está tu historia!",
+            "chat.story.modified": "¡Historia modificada!",
             "chat.error.message": "Lo siento, hubo un error",
+            "chat.max.length.reached": "Lo siento, la longitud máxima de historia es ~600 palabras. Ya estás usando la longitud más larga disponible. Puedes pedir modificaciones a la historia existente si quieres más contenido.",
+            "chat.input.placeholder.modify": "Pide cambios a la historia...",
+            "chat.input.hint.modify": "Escribe tu solicitud de modificación",
+            "chat.hint.modify": "💡 ¿Quieres modificarla? Solo escribe tu solicitud abajo",
+            "chat.quickaction.longer": "Hazla más larga",
+            "chat.quickaction.ending": "Cambia el final",
+            "chat.quickaction.characters": "Añade más personajes",
+            "chat.new.story": "Nueva historia",
             
             // UI Language selector
             "ui.language": "Idioma de la interfaz"
@@ -156,6 +171,7 @@ struct LocalizedStrings {
             "story.voice.hint": "Change the speaker without regenerating the story.",
             "story.save": "Save",
             "story.share": "Share",
+            "story.text": "Story",
             
             // Saved stories
             "saved.stories": "Saved stories",
@@ -171,6 +187,9 @@ struct LocalizedStrings {
             "saved.unfavorite": "Unfavorite",
             "saved.no.results": "No results found",
             "saved.no.results.hint": "Try different search terms or disable favorites filter",
+            "saved.delete.confirm": "Delete story?",
+            "saved.delete.message": "This action cannot be undone.",
+            "cancel": "Cancel",
             
             // Audio player
             "audio.play": "Play",
@@ -213,6 +232,8 @@ struct LocalizedStrings {
             "profile.mock.note": "These items are mocked for now",
             "profile.default.age": "Default target age",
             "profile.default.age.hint": "This age will be used for all generated stories",
+            "profile.default.length": "Default length",
+            "profile.default.length.hint": "This length will be used for all generated stories",
             
             // Defaults
             "form.default.name": "Friend",
@@ -242,7 +263,16 @@ struct LocalizedStrings {
             "chat.welcome.title": "Hello! 👋",
             "chat.welcome.subtitle": "Tell me what kind of story you'd like to create. I can make stories about anything.",
             "chat.story.generated": "Here's your story!",
+            "chat.story.modified": "Story modified!",
             "chat.error.message": "Sorry, there was an error",
+            "chat.max.length.reached": "Sorry, the maximum story length is ~600 words. You're already using the longest available length. You can ask for modifications to the existing story if you want more content.",
+            "chat.input.placeholder.modify": "Ask for changes to the story...",
+            "chat.input.hint.modify": "Type your modification request",
+            "chat.hint.modify": "💡 Want to modify it? Just type your request below",
+            "chat.quickaction.longer": "Make it longer",
+            "chat.quickaction.ending": "Change the ending",
+            "chat.quickaction.characters": "Add more characters",
+            "chat.new.story": "New Story",
             
             // UI Language selector
             "ui.language": "Interface Language"
@@ -271,6 +301,7 @@ struct LocalizedStrings {
             "story.voice.hint": "Changez le narrateur sans régénérer l'histoire.",
             "story.save": "Enregistrer",
             "story.share": "Partager",
+            "story.text": "Histoire",
             "saved.stories": "Histoires enregistrées",
             "saved.stories.description": "Revivez les aventures passées. Elles restent sur cet appareil.",
             "saved.stories.empty": "Aucune histoire enregistrée. Générez-en une et appuyez sur Enregistrer.",
@@ -284,6 +315,9 @@ struct LocalizedStrings {
             "saved.unfavorite": "Retirer des favoris",
             "saved.no.results": "Aucun résultat trouvé",
             "saved.no.results.hint": "Essayez d'autres termes de recherche ou désactivez le filtre des favoris",
+            "saved.delete.confirm": "Supprimer l'histoire?",
+            "saved.delete.message": "Cette action ne peut pas être annulée.",
+            "cancel": "Annuler",
             "audio.play": "Lire",
             "audio.playing": "En cours",
             "audio.pause": "Pause",
@@ -320,6 +354,8 @@ struct LocalizedStrings {
             "profile.mock.note": "Ces éléments sont simulés pour l'instant",
             "profile.default.age": "Âge cible par défaut",
             "profile.default.age.hint": "Cet âge sera utilisé pour toutes les histoires générées",
+            "profile.default.length": "Longueur par défaut",
+            "profile.default.length.hint": "Cette longueur sera utilisée pour toutes les histoires générées",
             
             // Defaults
             "form.default.name": "Ami",
@@ -349,7 +385,16 @@ struct LocalizedStrings {
             "chat.welcome.title": "Bonjour ! 👋",
             "chat.welcome.subtitle": "Dis-moi quel type d'histoire tu aimerais créer. Je peux faire des histoires sur n'importe quel sujet.",
             "chat.story.generated": "Voici ton histoire !",
+            "chat.story.modified": "Histoire modifiée !",
             "chat.error.message": "Désolé, il y a eu une erreur",
+            "chat.max.length.reached": "Désolé, la longueur maximale de l'histoire est d'environ 600 mots. Vous utilisez déjà la longueur la plus longue disponible. Vous pouvez demander des modifications à l'histoire existante si vous voulez plus de contenu.",
+            "chat.input.placeholder.modify": "Demande des modifications à l'histoire...",
+            "chat.input.hint.modify": "Tapez votre demande de modification",
+            "chat.hint.modify": "💡 Vous voulez la modifier ? Tapez simplement votre demande ci-dessous",
+            "chat.quickaction.longer": "Rendez-la plus longue",
+            "chat.quickaction.ending": "Changez la fin",
+            "chat.quickaction.characters": "Ajoutez plus de personnages",
+            "chat.new.story": "Nouvelle histoire",
             
             "ui.language": "Langue de l'interface"
         ],
@@ -377,6 +422,7 @@ struct LocalizedStrings {
             "story.voice.hint": "Ändern Sie den Sprecher, ohne die Geschichte neu zu generieren.",
             "story.save": "Speichern",
             "story.share": "Teilen",
+            "story.text": "Geschichte",
             "saved.stories": "Gespeicherte Geschichten",
             "saved.stories.description": "Vergangene Abenteuer wiederholen. Sie bleiben auf diesem Gerät.",
             "saved.stories.empty": "Noch keine Geschichten gespeichert. Generieren Sie eine und tippen Sie auf Speichern.",
@@ -390,6 +436,9 @@ struct LocalizedStrings {
             "saved.unfavorite": "Aus Favoriten entfernen",
             "saved.no.results": "Keine Ergebnisse gefunden",
             "saved.no.results.hint": "Versuchen Sie andere Suchbegriffe oder deaktivieren Sie den Favoritenfilter",
+            "saved.delete.confirm": "Geschichte löschen?",
+            "saved.delete.message": "Diese Aktion kann nicht rückgängig gemacht werden.",
+            "cancel": "Abbrechen",
             "audio.play": "Abspielen",
             "audio.playing": "Wiedergabe",
             "audio.pause": "Pause",
@@ -426,6 +475,8 @@ struct LocalizedStrings {
             "profile.mock.note": "Diese Einträge sind vorerst simuliert",
             "profile.default.age": "Standard-Zielalter",
             "profile.default.age.hint": "Dieses Alter wird für alle generierten Geschichten verwendet",
+            "profile.default.length": "Standard-Länge",
+            "profile.default.length.hint": "Diese Länge wird für alle generierten Geschichten verwendet",
             
             // Defaults
             "form.default.name": "Freund",
@@ -455,7 +506,16 @@ struct LocalizedStrings {
             "chat.welcome.title": "Hallo! 👋",
             "chat.welcome.subtitle": "Sag mir, welche Art von Geschichte du erstellen möchtest. Ich kann Geschichten über alles machen.",
             "chat.story.generated": "Hier ist deine Geschichte!",
+            "chat.story.modified": "Geschichte geändert!",
             "chat.error.message": "Entschuldigung, es gab einen Fehler",
+            "chat.max.length.reached": "Entschuldigung, die maximale Geschichtenlänge beträgt ~600 Wörter. Sie verwenden bereits die längste verfügbare Länge. Sie können Änderungen an der bestehenden Geschichte anfordern, wenn Sie mehr Inhalt möchten.",
+            "chat.input.placeholder.modify": "Änderungen an der Geschichte anfordern...",
+            "chat.input.hint.modify": "Geben Sie Ihre Änderungsanfrage ein",
+            "chat.hint.modify": "💡 Möchten Sie sie ändern? Geben Sie einfach Ihre Anfrage unten ein",
+            "chat.quickaction.longer": "Länger machen",
+            "chat.quickaction.ending": "Ende ändern",
+            "chat.quickaction.characters": "Mehr Charaktere hinzufügen",
+            "chat.new.story": "Neue Geschichte",
             
             "ui.language": "Oberflächensprache"
         ],
@@ -483,6 +543,7 @@ struct LocalizedStrings {
             "story.voice.hint": "Cambia il narratore senza rigenerare la storia.",
             "story.save": "Salva",
             "story.share": "Condividi",
+            "story.text": "Storia",
             "saved.stories": "Storie salvate",
             "saved.stories.description": "Rivisita avventure passate. Rimangono su questo dispositivo.",
             "saved.stories.empty": "Nessuna storia salvata. Generane una e tocca Salva.",
@@ -496,6 +557,9 @@ struct LocalizedStrings {
             "saved.unfavorite": "Rimuovi dai preferiti",
             "saved.no.results": "Nessun risultato trovato",
             "saved.no.results.hint": "Prova con altri termini di ricerca o disattiva il filtro dei preferiti",
+            "saved.delete.confirm": "Eliminare la storia?",
+            "saved.delete.message": "Questa azione non può essere annullata.",
+            "cancel": "Annulla",
             "audio.play": "Riproduci",
             "audio.playing": "In riproduzione",
             "audio.pause": "Pausa",
@@ -532,6 +596,8 @@ struct LocalizedStrings {
             "profile.mock.note": "Elementi simulati per ora",
             "profile.default.age": "Età target predefinita",
             "profile.default.age.hint": "Questa età verrà utilizzata per tutte le storie generate",
+            "profile.default.length": "Lunghezza predefinita",
+            "profile.default.length.hint": "Questa lunghezza verrà utilizzata per tutte le storie generate",
             
             // Defaults
             "form.default.name": "Amico",
@@ -561,7 +627,16 @@ struct LocalizedStrings {
             "chat.welcome.title": "Ciao! 👋",
             "chat.welcome.subtitle": "Dimmi che tipo di storia vorresti creare. Posso fare storie su qualsiasi argomento.",
             "chat.story.generated": "Ecco la tua storia!",
+            "chat.story.modified": "Storia modificata!",
             "chat.error.message": "Scusa, c'è stato un errore",
+            "chat.max.length.reached": "Scusa, la lunghezza massima della storia è di ~600 parole. Stai già usando la lunghezza più lunga disponibile. Puoi chiedere modifiche alla storia esistente se vuoi più contenuto.",
+            "chat.input.placeholder.modify": "Chiedi modifiche alla storia...",
+            "chat.input.hint.modify": "Digita la tua richiesta di modifica",
+            "chat.hint.modify": "💡 Vuoi modificarla? Basta digitare la tua richiesta qui sotto",
+            "chat.quickaction.longer": "Rendila più lunga",
+            "chat.quickaction.ending": "Cambia il finale",
+            "chat.quickaction.characters": "Aggiungi più personaggi",
+            "chat.new.story": "Nuova storia",
             
             "ui.language": "Lingua dell'interfaccia"
         ],
@@ -589,6 +664,7 @@ struct LocalizedStrings {
             "story.voice.hint": "Mude o narrador sem regenerar a história.",
             "story.save": "Salvar",
             "story.share": "Compartilhar",
+            "story.text": "História",
             "saved.stories": "Histórias salvas",
             "saved.stories.description": "Reviva aventuras passadas. Elas ficam neste dispositivo.",
             "saved.stories.empty": "Nenhuma história salva. Gere uma e toque em Salvar.",
@@ -602,6 +678,9 @@ struct LocalizedStrings {
             "saved.unfavorite": "Remover dos favoritos",
             "saved.no.results": "Nenhum resultado encontrado",
             "saved.no.results.hint": "Tente outros termos de pesquisa ou desative o filtro de favoritos",
+            "saved.delete.confirm": "Excluir história?",
+            "saved.delete.message": "Esta ação não pode ser desfeita.",
+            "cancel": "Cancelar",
             "audio.play": "Reproduzir",
             "audio.playing": "Reproduzindo",
             "audio.pause": "Pausar",
@@ -638,6 +717,8 @@ struct LocalizedStrings {
             "profile.mock.note": "Itens simulados por enquanto",
             "profile.default.age": "Idade alvo padrão",
             "profile.default.age.hint": "Esta idade será usada para todas as histórias geradas",
+            "profile.default.length": "Duração padrão",
+            "profile.default.length.hint": "Esta duração será usada para todas as histórias geradas",
             
             // Defaults
             "form.default.name": "Amigo",
@@ -667,7 +748,16 @@ struct LocalizedStrings {
             "chat.welcome.title": "Olá! 👋",
             "chat.welcome.subtitle": "Me diga que tipo de história você gostaria de criar. Posso fazer histórias sobre qualquer assunto.",
             "chat.story.generated": "Aqui está sua história!",
+            "chat.story.modified": "História modificada!",
             "chat.error.message": "Desculpe, houve um erro",
+            "chat.max.length.reached": "Desculpe, o comprimento máximo da história é ~600 palavras. Você já está usando o comprimento mais longo disponível. Você pode pedir modificações na história existente se quiser mais conteúdo.",
+            "chat.input.placeholder.modify": "Peça alterações na história...",
+            "chat.input.hint.modify": "Digite sua solicitação de modificação",
+            "chat.hint.modify": "💡 Quer modificá-la? Basta digitar sua solicitação abaixo",
+            "chat.quickaction.longer": "Torne-a mais longa",
+            "chat.quickaction.ending": "Mude o final",
+            "chat.quickaction.characters": "Adicione mais personagens",
+            "chat.new.story": "Nova história",
             
             "ui.language": "Idioma da interface"
         ],
@@ -695,6 +785,7 @@ struct LocalizedStrings {
             "story.voice.hint": "ストーリーを再生成せずにナレーターを変更します。",
             "story.save": "保存",
             "story.share": "共有",
+            "story.text": "ストーリー",
             "saved.stories": "保存されたストーリー",
             "saved.stories.description": "過去の冒険を再訪。このデバイスに残ります。",
             "saved.stories.empty": "保存されたストーリーはありません。生成して「保存」をタップしてください。",
@@ -708,6 +799,9 @@ struct LocalizedStrings {
             "saved.unfavorite": "お気に入りから削除",
             "saved.no.results": "結果が見つかりません",
             "saved.no.results.hint": "別の検索語を試すか、お気に入りフィルターを無効にしてください",
+            "saved.delete.confirm": "ストーリーを削除しますか？",
+            "saved.delete.message": "この操作は元に戻せません。",
+            "cancel": "キャンセル",
             "audio.play": "再生",
             "audio.playing": "再生中",
             "audio.pause": "一時停止",
@@ -744,6 +838,8 @@ struct LocalizedStrings {
             "profile.mock.note": "現在はモック表示です",
             "profile.default.age": "デフォルトの対象年齢",
             "profile.default.age.hint": "この年齢は生成されるすべての物語に使用されます",
+            "profile.default.length": "デフォルトの長さ",
+            "profile.default.length.hint": "この長さは生成されるすべての物語に使用されます",
             
             // Defaults
             "form.default.name": "ともだち",
@@ -773,7 +869,16 @@ struct LocalizedStrings {
             "chat.welcome.title": "こんにちは！👋",
             "chat.welcome.subtitle": "どんな物語を作りたいか教えてください。どんなテーマでも物語を作ることができます。",
             "chat.story.generated": "あなたの物語ができました！",
+            "chat.story.modified": "物語が変更されました！",
             "chat.error.message": "申し訳ございませんが、エラーが発生しました",
+            "chat.max.length.reached": "申し訳ございませんが、物語の最大長は約600語です。すでに利用可能な最長の長さを使用しています。より多くのコンテンツが必要な場合は、既存の物語に変更を依頼できます。",
+            "chat.input.placeholder.modify": "物語に変更を依頼...",
+            "chat.input.hint.modify": "変更リクエストを入力してください",
+            "chat.hint.modify": "💡 変更しますか？下にリクエストを入力するだけです",
+            "chat.quickaction.longer": "長くする",
+            "chat.quickaction.ending": "結末を変える",
+            "chat.quickaction.characters": "キャラクターを追加",
+            "chat.new.story": "新しい物語",
             
             "ui.language": "インターフェース言語"
         ]

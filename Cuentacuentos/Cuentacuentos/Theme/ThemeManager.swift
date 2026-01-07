@@ -18,9 +18,5 @@ final class ThemeManager: ObservableObject {
             current = savedTheme
         }
     }
-    
-    func setTheme(_ theme: ThemeVariant) {
-        current = theme
-    }
 }
 

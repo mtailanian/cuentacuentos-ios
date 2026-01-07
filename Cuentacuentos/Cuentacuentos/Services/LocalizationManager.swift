@@ -20,10 +20,6 @@ class LocalizationManager: ObservableObject {
         }
     }
     
-    func setLanguage(_ language: Story.Language) {
-        currentLanguage = language
-    }
-    
     func localizedString(_ key: String) -> String {
         return LocalizedStrings.string(for: key, language: currentLanguage)
     }

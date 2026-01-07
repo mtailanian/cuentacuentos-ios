@@ -42,11 +42,13 @@ class StoryService: ObservableObject {
             throw StoryServiceError.missingAPIKey
         }
         
-        let storyLengthMap: [StoryFormValues.StoryLength: String] = [
-            .short: "about 250 words",
-            .medium: "about 400 words",
-            .long: "about 600 words"
+        let storyLengthMap: [StoryFormValues.StoryLength: (words: String, tokens: Int)] = [
+            .short: ("exactly 250 words", 500),
+            .medium: ("exactly 400 words", 800),
+            .long: ("exactly 600 words", 1200)
         ]
+        
+        let lengthInfo = storyLengthMap[length] ?? ("exactly 250 words", 500)
         
         let languageLabelMap: [Story.Language: String] = [
             .english: "English",
@@ -65,9 +67,9 @@ class StoryService: ObservableObject {
             randomTopic
                 ? "Create a random, friendly topic suitable for the age."
                 : "Story idea: \(brief ?? "A gentle, uplifting theme.")",
-            "Story length: \(storyLengthMap[length] ?? "about 250 words")",
+            "IMPORTANT: The story must be exactly \(lengthInfo.words). Do not make it shorter. The story content should be \(lengthInfo.words) long.",
             "Write the story in \(targetLanguage) with simple, age-appropriate language and a kind tone. If Spanish, use neutral Latin American Spanish.",
-            "Return JSON with fields: title (string), story (string)."
+            "Return JSON with fields: title (string), story (string). The story field must contain a complete story that is \(lengthInfo.words) in length."
         ].joined(separator: "\n")
         
         let url = URL(string: "https://api.openai.com/v1/chat/completions")!
@@ -79,12 +81,12 @@ class StoryService: ObservableObject {
         let requestBody: [String: Any] = [
             "model": "gpt-4o-mini",
             "temperature": 0.8,
-            "max_tokens": 900,
+            "max_tokens": lengthInfo.tokens,
             "response_format": ["type": "json_object"] as [String: Any],
             "messages": [
                 [
                     "role": "system",
-                    "content": "You write warm, positive, age-appropriate children's stories with simple language and clear morals. Match the requested language exactly and keep it friendly for kids."
+                    "content": "You write warm, positive, age-appropriate children's stories with simple language and clear morals. Match the requested language exactly and keep it friendly for kids. Always write stories that match the exact word count requested - do not make them shorter."
                 ] as [String: Any],
                 [
                     "role": "user",

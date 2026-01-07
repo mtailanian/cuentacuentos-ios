@@ -9,6 +9,7 @@ struct ProfileView: View {
     
     @State private var userName: String = "Alex"
     @State private var defaultAge: Int = 6
+    @State private var defaultLength: StoryFormValues.StoryLength = .short
     @State private var credits: Int = 5
     @State private var notificationsEnabled: Bool = true
     @State private var avatarItem: PhotosPickerItem?
@@ -93,6 +94,64 @@ struct ProfileView: View {
                             .font(AppTheme.roundedFont(.caption))
                             .foregroundColor(.secondary)
                     }
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("profile.default.length".localized)
+                            .font(AppTheme.roundedFont(.headline, weight: .semibold))
+                        
+                        // Visual segmented control style
+                        HStack(spacing: 4) {
+                            ForEach(StoryFormValues.StoryLength.allCases, id: \.self) { length in
+                                Button {
+                                    HapticManager.impact(style: .light)
+                                    defaultLength = length
+                                    saveProfile()
+                                } label: {
+                                    VStack(spacing: 6) {
+                                        // Visual bars representing length
+                                        HStack(spacing: 3) {
+                                            ForEach(0..<length.barCount, id: \.self) { _ in
+                                                RoundedRectangle(cornerRadius: 2)
+                                                    .fill(defaultLength == length ? Color.white : Color.secondary.opacity(0.4))
+                                                    .frame(width: 5, height: defaultLength == length ? 16 : 12)
+                                            }
+                                        }
+                                        
+                                        // Word count badge
+                                        Text(length.wordCount)
+                                            .font(AppTheme.roundedFont(.caption2, weight: .semibold))
+                                            .foregroundColor(defaultLength == length ? .white.opacity(0.9) : .secondary)
+                                        
+                                        // Label
+                                        Text(length.displayName.components(separatedBy: " ").first ?? "")
+                                            .font(AppTheme.roundedFont(.caption, weight: defaultLength == length ? .semibold : .medium))
+                                            .foregroundColor(defaultLength == length ? .white : .primary)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                                    .padding(.horizontal, 8)
+                                    .background(
+                                        defaultLength == length
+                                            ? AnyShapeStyle(AppGradients.chipActive)
+                                            : AnyShapeStyle(Color(.systemGray6))
+                                    )
+                                    .cornerRadius(AppTheme.Radii.medium)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: AppTheme.Radii.medium)
+                                            .stroke(defaultLength == length ? Color.clear : Color(.systemGray4), lineWidth: 1)
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(4)
+                        .background(Color(.systemGray5))
+                        .cornerRadius(AppTheme.Radii.large)
+                        
+                        Text("profile.default.length.hint".localized)
+                            .font(AppTheme.roundedFont(.caption))
+                            .foregroundColor(.secondary)
+                    }
                 }
                 .listRowBackground(AppTheme.Colors.surface)
                 
@@ -170,23 +229,9 @@ struct ProfileView: View {
             .navigationTitle("tab.profile".localized)
             .scrollContentBackground(.hidden)
             .background(ThemeBackgroundView(theme: themeManager.current))
-            .simultaneousGesture(
-                TapGesture()
-                    .onEnded {
-                        // Dismiss keyboard when tapping on list
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                    }
-            )
+            .dismissKeyboardOnTap()
         }
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 20)
-                .onEnded { value in
-                    // Dismiss keyboard on drag down (swipe down gesture)
-                    if value.translation.height > 100 {
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                    }
-                }
-        )
+        .dismissKeyboardOnDrag()
         .onAppear {
             loadProfile()
         }
@@ -194,6 +239,9 @@ struct ProfileView: View {
             saveProfile()
         }
         .onChange(of: defaultAge) { newAge in
+            saveProfile()
+        }
+        .onChange(of: defaultLength) { newLength in
             saveProfile()
         }
         .onChange(of: avatarItem) { newItem in
@@ -214,6 +262,7 @@ struct ProfileView: View {
         if let profile = storageService.loadProfile() {
             userName = profile.name
             defaultAge = profile.defaultAge
+            defaultLength = profile.defaultLength
             if let avatarData = profile.avatarData {
                 avatarImage = UIImage(data: avatarData)
             }
@@ -240,8 +289,9 @@ struct ProfileView: View {
             avatarData = resizedImage.jpegData(compressionQuality: 0.75)
         }
         
-        let profile = UserProfile(name: userName, avatarData: avatarData, defaultAge: defaultAge)
+        let profile = UserProfile(name: userName, avatarData: avatarData, defaultAge: defaultAge, defaultLength: defaultLength)
         storageService.saveProfile(profile)
     }
+    
 }
 

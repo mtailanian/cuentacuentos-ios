@@ -2,11 +2,12 @@ import SwiftUI
 
 struct StoryDisplayView: View {
     let story: Story
-    let onSave: () -> Void
+    let onSave: (() -> Void)?
     let onShare: () -> Void
     let onToggleFavorite: (() -> Void)?
     @StateObject private var localizationManager = LocalizationManager.shared
-    @State private var playbackVoice: Story.Voice = .auto
+    @EnvironmentObject var themeManager: ThemeManager
+    @ObservedObject private var playerManager = PlayerManager.shared
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -23,55 +24,84 @@ struct StoryDisplayView: View {
                         .font(.title2)
                         .fontWeight(.semibold)
                     
-                    Text("\("story.for".localized) \(story.name) · \("story.age".localized) \(story.age) · \(story.language.displayName)")
+                    Text(story.formattedMetadata)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
                 
                 Spacer()
+            }
+            
+            // Action buttons - same style as chat card
+            HStack(spacing: 12) {
+                // Play button (icon only)
+                Button {
+                    HapticManager.impact(style: .medium)
+                    if playerManager.isPlaying && playerManager.currentStory?.id == story.id {
+                        playerManager.pause()
+                    } else if playerManager.isPaused && playerManager.currentStory?.id == story.id {
+                        playerManager.resume()
+                    } else {
+                        playerManager.play(story: story, voice: story.voice)
+                    }
+                } label: {
+                    if playerManager.isLoading && playerManager.currentStory?.id == story.id {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(0.8)
+                            .frame(width: 36, height: 36)
+                    } else {
+                        Image(systemName: playerManager.isPlaying && playerManager.currentStory?.id == story.id ? "pause.fill" : "play.fill")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 36, height: 36)
+                    }
+                }
+                .background(themeManager.current.accentGradient)
+                .cornerRadius(18)
+                .buttonStyle(.plain)
+                .disabled(playerManager.isLoading && playerManager.currentStory?.id == story.id)
                 
-                HStack(spacing: 8) {
-                    // Favorite button
-                    if let onToggleFavorite = onToggleFavorite {
-                        Button(action: {
-                            HapticManager.notification(type: story.isFavorite ? .warning : .success)
-                            onToggleFavorite()
-                        }) {
-                            Image(systemName: story.isFavorite ? "heart.fill" : "heart")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(story.isFavorite ? .red : .secondary)
-                                .frame(width: 44, height: 44)
-                                .background(story.isFavorite ? Color.red.opacity(0.1) : Color(.systemGray6))
-                                .cornerRadius(AppTheme.Radii.medium)
+                if let onToggleFavorite = onToggleFavorite {
+                    FavoriteButton(
+                        isFavorite: story.isFavorite,
+                        onToggle: onToggleFavorite,
+                        size: 36,
+                        iconSize: 16
+                    )
+                }
+                
+                Button {
+                    HapticManager.impact(style: .light)
+                    onShare()
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.secondary)
+                        .frame(width: 36, height: 36)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(18)
+                }
+                .buttonStyle(.plain)
+                
+                if let onSave = onSave {
+                    Button {
+                        HapticManager.notification(type: .success)
+                        onSave()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "bookmark.fill")
+                                .font(.system(size: 14, weight: .semibold))
+                            Text("story.save".localized)
+                                .font(AppTheme.roundedFont(.caption, weight: .semibold))
                         }
-                        .buttonStyle(.plain)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(themeManager.current.accentGradient)
+                        .cornerRadius(20)
                     }
-                
-                VStack(spacing: 8) {
-                        Button(action: {
-                            HapticManager.impact(style: .light)
-                            onShare()
-                        }) {
-                        Text("story.share".localized)
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                    }
-                    .buttonStyle(.bordered)
-                    
-                        Button(action: {
-                            HapticManager.notification(type: .success)
-                            onSave()
-                        }) {
-                        Text("story.save".localized)
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    }
+                    .buttonStyle(.plain)
                 }
             }
             
@@ -88,80 +118,11 @@ struct StoryDisplayView: View {
             }
             .background(Color.gray.opacity(0.1))
             .cornerRadius(12)
-            
-            // Playback section inspired by Spotify-style player
-            VStack(spacing: 12) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("story.playback.voice".localized)
-                            .font(AppTheme.roundedFont(.subheadline, weight: .semibold))
-                        Text("story.voice.hint".localized)
-                            .font(AppTheme.roundedFont(.caption))
-                            .foregroundColor(.secondary)
-                    }
-                    Spacer()
-                    Picker("", selection: $playbackVoice) {
-                        ForEach(Story.Voice.allCases, id: \.self) { voice in
-                            Text(voice.displayName).tag(voice)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                }
-                
-                Button {
-                    HapticManager.impact(style: .medium)
-                    PlayerManager.shared.play(story: story, voice: playbackVoice == .auto ? nil : playbackVoice)
-                } label: {
-                    HStack {
-                        if PlayerManager.shared.isLoading && PlayerManager.shared.currentStory?.id == story.id {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        } else {
-                            Image(systemName: PlayerManager.shared.isPlaying && PlayerManager.shared.currentStory?.id == story.id ? "pause.fill" : "play.fill")
-                                .font(.system(size: 16, weight: .semibold))
-                        }
-                        Text(PlayerManager.shared.isLoading && PlayerManager.shared.currentStory?.id == story.id ? "audio.preparing".localized : PlayerManager.shared.isPlaying && PlayerManager.shared.currentStory?.id == story.id ? "audio.playing".localized : "audio.play".localized)
-                            .font(AppTheme.roundedFont(.subheadline, weight: .semibold))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .foregroundColor(.white)
-                    .background(
-                        LinearGradient(
-                            colors: [
-                                AppTheme.Colors.primary,
-                                AppTheme.Colors.secondary
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(AppTheme.Radii.medium)
-                }
-                .buttonStyle(.plain)
-                .disabled(PlayerManager.shared.isLoading && PlayerManager.shared.currentStory?.id == story.id)
-            }
-            .padding()
-            .background(
-                LinearGradient(
-                    colors: [
-                        AppTheme.Colors.primary.opacity(0.18),
-                        AppTheme.Colors.secondary.opacity(0.16)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .cornerRadius(AppTheme.Radii.large)
-            .shadow(color: AppTheme.Colors.subtleShadow, radius: 6, x: 0, y: 3)
         }
         .padding()
         .background(Color(.systemBackground))
         .cornerRadius(16)
         .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-        .onAppear {
-            playbackVoice = story.voice ?? .auto
-        }
     }
 }
 
@@ -179,7 +140,7 @@ struct StoryDisplayView: View {
             randomTopic: false,
             brief: nil
         ),
-        onSave: {},
+        onSave: nil,
         onShare: {},
         onToggleFavorite: nil
     )

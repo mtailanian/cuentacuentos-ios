@@ -2,26 +2,41 @@ import SwiftUI
 
 struct ChatInputView: View {
     @Binding var message: String
-    @Binding var length: StoryFormValues.StoryLength
     let onSubmit: () -> Void
     let isLoading: Bool
+    let hasCurrentStory: Bool // New parameter to determine placeholder
+    let onNewStory: (() -> Void)? // New callback for new story button
     @FocusState private var isInputFocused: Bool
     @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
         VStack(spacing: 0) {
-            // Quick settings bar
-            if !isInputFocused {
-                quickSettingsBar
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-            }
-            
             // Input area
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .center, spacing: 12) {
+                    // New Story button (like ChatGPT) - only show when there are messages
+                    if let onNewStory = onNewStory {
+                        Button {
+                            HapticManager.impact(style: .light)
+                            onNewStory()
+                        } label: {
+                            ZStack {
+                                Circle()
+                                    .stroke(Color.secondary.opacity(0.3), lineWidth: 1.5)
+                                    .frame(width: 32, height: 32)
+                                Image(systemName: "plus")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    
                     // Text input - single line like ChatGPT
-                    TextField("chat.input.placeholder".localized, text: $message)
+                    TextField(
+                        hasCurrentStory ? "chat.input.placeholder.modify".localized : "chat.input.placeholder".localized,
+                        text: $message
+                    )
                         .font(AppTheme.roundedFont(.body))
                         .textFieldStyle(.plain)
                         .padding(.horizontal, 16)
@@ -30,7 +45,7 @@ struct ChatInputView: View {
                         .cornerRadius(22)
                         .focused($isInputFocused)
                         .onSubmit {
-                            if !message.isEmpty && !isLoading {
+                            if (!message.isEmpty || !hasCurrentStory) && !isLoading {
                                 onSubmit()
                             }
                         }
@@ -42,7 +57,7 @@ struct ChatInputView: View {
                 } label: {
                     ZStack {
                         Circle()
-                            .fill(message.isEmpty || isLoading ? AnyShapeStyle(Color(.systemGray4)) : AnyShapeStyle(themeManager.current.accentGradient))
+                            .fill((message.isEmpty && hasCurrentStory) || isLoading ? AnyShapeStyle(Color(.systemGray4)) : AnyShapeStyle(themeManager.current.accentGradient))
                             .frame(width: 44, height: 44)
                         
                         if isLoading {
@@ -56,61 +71,23 @@ struct ChatInputView: View {
                         }
                     }
                     }
-                    .disabled(message.isEmpty || isLoading)
+                    .disabled((message.isEmpty && hasCurrentStory) || isLoading)
                     .buttonStyle(.plain)
                 }
                 
-                // Hint text when input is empty
-                if message.isEmpty && !isInputFocused {
+                // Hint text when input is empty (only for new stories, not modifications)
+                if message.isEmpty && !isInputFocused && !hasCurrentStory {
                     Text("chat.input.hint".localized)
                         .font(AppTheme.roundedFont(.caption))
                         .foregroundColor(.secondary.opacity(0.7))
                         .padding(.horizontal, 20)
+                        .padding(.top, 4)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .background(Color(.systemBackground))
-        }
-        .background(
-            Color(.systemBackground)
-                .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: -5)
-        )
-    }
-    
-    private var quickSettingsBar: some View {
-        HStack(spacing: 12) {
-            // Length selector
-            Menu {
-                ForEach(StoryFormValues.StoryLength.allCases, id: \.self) { len in
-                    Button {
-                        length = len
-                    } label: {
-                        HStack {
-                            Text(len.displayName)
-                            if length == len {
-                                Image(systemName: "checkmark")
-                            }
-                        }
-                    }
-                }
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "text.alignleft")
-                        .font(.system(size: 12))
-                    Text(length.displayName)
-                        .font(AppTheme.roundedFont(.caption, weight: .semibold))
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 10))
-                }
-                .foregroundColor(.primary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(Color(.systemGray6))
-                .cornerRadius(16)
-            }
-            
-            Spacer()
         }
     }
 }
@@ -118,9 +95,10 @@ struct ChatInputView: View {
 #Preview {
     ChatInputView(
         message: .constant(""),
-        length: .constant(.medium),
         onSubmit: {},
-        isLoading: false
+        isLoading: false,
+        hasCurrentStory: false,
+        onNewStory: nil
     )
     .environmentObject(ThemeManager())
 }

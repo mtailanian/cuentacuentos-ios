@@ -36,15 +36,13 @@ struct ContentView: View {
                             onShare: handleShare,
                             onToggleFavorite: {
                                 handleToggleFavoriteForCurrentStory()
-                            }
+                            },
+                            onClearChat: handleClearChat
                         )
                     case 1:
                         SavedStoriesView(
                             savedStories: $savedStories,
                             onDelete: handleDelete,
-                            onSelect: { story in
-                                currentStory = story
-                            },
                             onToggleFavorite: handleToggleFavorite,
                             onRefresh: loadSavedStories
                         )
@@ -92,6 +90,11 @@ struct ContentView: View {
             .environmentObject(themeManager)
             .onAppear {
                 loadSavedStories()
+                loadChatMessages()
+            }
+            .onChange(of: chatMessages.count) { _ in
+                // Save chat messages whenever they change
+                storageService.saveChatMessages(chatMessages)
             }
             .fullScreenCover(isPresented: $playerManager.showFullPlayer) {
                 FullPlayerView()
@@ -116,6 +119,14 @@ struct ContentView: View {
         playerManager.restoreLastPlayedStory(from: savedStories)
     }
     
+    private func loadChatMessages() {
+        chatMessages = storageService.loadChatMessages()
+        // Restore currentStory from the last message with a story
+        if let lastStoryMessage = chatMessages.last(where: { $0.story != nil }) {
+            currentStory = lastStoryMessage.story
+        }
+    }
+    
     private func handleSubmit() {
         error = ""
         isLoading = true
@@ -123,26 +134,68 @@ struct ContentView: View {
         
         Task {
             do {
-                // Get profile for default age and name
+                // Get profile for default age, name, and length
                 let profile = storageService.loadProfile()
                 let age = profile?.defaultAge ?? 6
                 let fallbackName = profile?.name ?? "form.default.name".localized
+                let defaultLength = profile?.defaultLength ?? .short
                 let nameForStory = formValues.name.trimmingCharacters(in: .whitespaces).isEmpty ? fallbackName : formValues.name
                 
-                // Empty brief means random topic
-                let isRandomTopic = formValues.brief.trimmingCharacters(in: .whitespaces).isEmpty
+                // Check if there's a previous story in the conversation (modification request)
+                let previousStory = chatMessages.last(where: { $0.story != nil })?.story
+                let isModification = previousStory != nil && !formValues.brief.isEmpty
+                
+                // Empty brief means random topic (unless it's a modification)
+                let isRandomTopic = !isModification && formValues.brief.trimmingCharacters(in: .whitespaces).isEmpty
+                
+                // Detect if user asks for a longer story
+                let userMessage = formValues.brief.lowercased()
+                let longerKeywords = ["longer", "more", "extend", "expand", "más largo", "más largo", "plus long", "länger", "più lungo", "mais longo", "もっと長い"]
+                let wantsLonger = longerKeywords.contains { userMessage.contains($0) }
+                
+                // Determine length: upgrade if user wants longer, but cap at .long
+                let lengthToUse: StoryFormValues.StoryLength
+                if wantsLonger {
+                    switch defaultLength {
+                    case .short:
+                        lengthToUse = .medium
+                    case .medium:
+                        lengthToUse = .long
+                    case .long:
+                        // Already at maximum - return error message
+                        await MainActor.run {
+                            let maxLengthMessage = ChatMessage(
+                                role: .assistant,
+                                content: "chat.max.length.reached".localized
+                            )
+                            chatMessages.append(maxLengthMessage)
+                            isLoading = false
+                        }
+                        return
+                    }
+                } else {
+                    lengthToUse = defaultLength
+                }
+                
+                // For modifications, include the previous story context in the brief
+                let briefForRequest: String?
+                if isModification, let previousStory = previousStory {
+                    briefForRequest = "Modify the previous story based on this request: \(formValues.brief)\n\nPrevious story:\nTitle: \(previousStory.title)\nContent: \(previousStory.content)"
+                } else {
+                    briefForRequest = formValues.brief.isEmpty ? nil : formValues.brief
+                }
                 
                 let response = try await storyService.generateStory(
                     name: nameForStory,
                     age: age,
-                    brief: formValues.brief.isEmpty ? nil : formValues.brief,
+                    brief: briefForRequest,
                     randomTopic: isRandomTopic,
-                    length: formValues.length,
+                    length: lengthToUse,
                     language: localizationManager.currentLanguage
                 )
                 
                 let newStory = Story(
-                    id: UUID().uuidString,
+                    id: isModification ? UUID().uuidString : (previousStory?.id ?? UUID().uuidString),
                     title: response.title,
                     content: response.story,
                     createdAt: ISO8601DateFormatter().string(from: Date()),
@@ -150,7 +203,7 @@ struct ContentView: View {
                     age: age,
                     language: localizationManager.currentLanguage,
                     voice: nil,
-                    randomTopic: formValues.randomTopic,
+                    randomTopic: isRandomTopic,
                     brief: formValues.brief.isEmpty ? nil : formValues.brief
                 )
                 
@@ -161,7 +214,7 @@ struct ContentView: View {
                     // Add assistant message with the story
                     let assistantMessage = ChatMessage(
                         role: .assistant,
-                        content: "chat.story.generated".localized,
+                        content: isModification ? "chat.story.modified".localized : "chat.story.generated".localized,
                         story: newStory
                     )
                     chatMessages.append(assistantMessage)
@@ -220,13 +273,7 @@ struct ContentView: View {
     private func handleShare() {
         guard let story = currentStory else { return }
         HapticManager.impact(style: .medium)
-        let shareText = "\(story.title)\n\n\(story.content)"
-        let activityVC = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
-        
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootViewController = windowScene.windows.first?.rootViewController {
-            rootViewController.present(activityVC, animated: true)
-        }
+        story.share()
     }
     
     private func handleToggleFavorite(_ id: String) {
@@ -269,6 +316,19 @@ struct ContentView: View {
             savedStories.insert(updatedStory, at: 0)
         }
         storageService.saveStories(savedStories)
+    }
+    
+    private func handleClearChat() {
+        // Clear chat messages
+        chatMessages = []
+        // Clear current story
+        currentStory = nil
+        // Clear form values
+        formValues = StoryFormValues()
+        // Clear error
+        error = ""
+        // Save empty chat to storage
+        storageService.saveChatMessages([])
     }
 }
 

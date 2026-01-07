@@ -6,7 +6,6 @@ struct SavedStoriesView: View {
     
     @Binding var savedStories: [Story]
     let onDelete: (String) -> Void
-    let onSelect: (Story) -> Void
     let onToggleFavorite: (String) -> Void
     let onRefresh: () -> Void
     
@@ -76,9 +75,12 @@ struct SavedStoriesView: View {
                         .listRowBackground(Color.clear)
                 } else {
                         ForEach(filteredStories) { story in
-                        NavigationLink(value: story) {
+                            Button {
+                                navigationPath.append(story)
+                            } label: {
                                 storyRow(story)
                             }
+                            .buttonStyle(.plain)
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color.clear)
                             .swipeActions(edge: .trailing) {
@@ -86,7 +88,7 @@ struct SavedStoriesView: View {
                                     HapticManager.impact(style: .medium)
                                     onDelete(story.id)
                                 } label: {
-                                    Label("saved.delete".localized, systemImage: "trash")
+                                    Image(systemName: "trash")
                                 }
                                 .tint(.red)
                                 
@@ -96,10 +98,7 @@ struct SavedStoriesView: View {
                                         onToggleFavorite(story.id)
                                     }
                                 } label: {
-                                    Label(
-                                        story.isFavorite ? "saved.unfavorite".localized : "saved.favorite".localized,
-                                        systemImage: story.isFavorite ? "heart.slash.fill" : "heart.fill"
-                                    )
+                                    Image(systemName: story.isFavorite ? "heart.slash.fill" : "heart.fill")
                                 }
                                 .tint(.pink)
                             }
@@ -124,6 +123,15 @@ struct SavedStoriesView: View {
                 onRefresh()
             }
         }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 20)
+                .onEnded { value in
+                    // Dismiss keyboard on drag down (swipe down gesture)
+                    if value.translation.height > 100 {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
+                }
+        )
     }
     
     private func storyRow(_ story: Story) -> some View {
@@ -150,7 +158,7 @@ struct SavedStoriesView: View {
                             .foregroundColor(.red)
                     }
                 }
-                                        Text("\("story.for".localized) \(story.name) · \("story.age".localized) \(story.age) · \(story.language.displayName)")
+                                        Text(story.formattedMetadata)
                                             .font(AppTheme.roundedFont(.caption))
                                             .foregroundColor(.secondary)
                                             .lineLimit(1)
@@ -183,7 +191,8 @@ struct SavedStoriesView: View {
                 .multilineTextAlignment(.center)
         }
         .padding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .frame(maxWidth: .infinity)
+        .frame(minHeight: 200)
     }
 }
 

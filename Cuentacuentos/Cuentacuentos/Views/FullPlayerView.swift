@@ -5,7 +5,20 @@ struct FullPlayerView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @State private var playbackVoice: Story.Voice = .auto
     @State private var dragOffset: CGFloat = 0
-    @State private var isDragging = false
+    @State private var showVoiceMenu = false
+    @State private var showSpeedMenu = false
+    
+    private let playbackSpeeds: [Double] = [0.6, 0.7, 0.8, 0.9, 1.0, 1.25, 1.5]
+    
+    private func speedLabel(for rate: Double) -> String {
+        if rate == 1.0 {
+            return "x1"
+        } else if rate < 1.0 {
+            return String(format: "x%.1f", rate)
+        } else {
+            return String(format: "x%.2f", rate)
+        }
+    }
     
     var body: some View {
         if let story = playerManager.currentStory {
@@ -47,7 +60,7 @@ struct FullPlayerView: View {
                                 ZStack {
                                     RoundedRectangle(cornerRadius: 24)
                                         .fill(themeManager.current.accentGradient)
-                                        .frame(width: min(geometry.size.width - 80, 320), height: min(geometry.size.width - 80, 320))
+                                        .frame(width: max(min(geometry.size.width - 80, 320), 200), height: max(min(geometry.size.width - 80, 320), 200))
                                         .shadow(color: Color.black.opacity(0.3), radius: 20, x: 0, y: 10)
                                     
                                     Image(systemName: "book.fill")
@@ -63,7 +76,7 @@ struct FullPlayerView: View {
                                         .foregroundColor(.primary)
                                         .multilineTextAlignment(.center)
                                     
-                                    Text("\("story.for".localized) \(story.name)")
+                                    Text(story.formattedMetadataShort)
                                         .font(AppTheme.roundedFont(.subheadline))
                                         .foregroundColor(.secondary)
                                 }
@@ -83,13 +96,13 @@ struct FullPlayerView: View {
                                     .tint(themeManager.current.accentColor)
                                     
                                     HStack {
-                                        Text(formatTime(playerManager.currentTime))
+                                        Text(playerManager.currentTime.formattedTime())
                                             .font(AppTheme.roundedFont(.caption, weight: .medium))
                                             .foregroundColor(.secondary)
                                         
                                         Spacer()
                                         
-                                        Text(formatTime(playerManager.duration))
+                                        Text(playerManager.duration.formattedTime())
                                             .font(AppTheme.roundedFont(.caption, weight: .medium))
                                             .foregroundColor(.secondary)
                                     }
@@ -97,7 +110,34 @@ struct FullPlayerView: View {
                                 .padding(.horizontal, 32)
                                 
                                 // Playback controls
-                                HStack(spacing: 32) {
+                                HStack(spacing: 0) {
+                                    // Voice selector icon (left of previous)
+                                    Menu {
+                                        ForEach(Story.Voice.allCases, id: \.self) { voice in
+                                            Button {
+                                                playbackVoice = voice
+                                                if playerManager.isPlaying || playerManager.isPaused {
+                                                    playerManager.stop()
+                                                    playerManager.play(story: story, voice: voice == .auto ? nil : voice)
+                                                }
+                                            } label: {
+                                                HStack {
+                                                    Text(voice.displayName)
+                                                    if playbackVoice == voice {
+                                                        Image(systemName: "checkmark")
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } label: {
+                                        Image(systemName: "person.wave.2.fill")
+                                            .font(.system(size: 20, weight: .semibold))
+                                            .foregroundColor(.secondary)
+                                            .frame(width: 44, height: 44)
+                                    }
+                                    
+                                    Spacer()
+                                    
                                     // Previous (disabled for now)
                                     Button {
                                         // TODO: Previous story
@@ -109,6 +149,9 @@ struct FullPlayerView: View {
                                     }
                                     .disabled(true)
                                     
+                                    Spacer()
+                                        .frame(width: 24)
+                                    
                                     // Play/Pause
                                     Button {
                                         HapticManager.impact(style: .medium)
@@ -117,7 +160,7 @@ struct FullPlayerView: View {
                                         } else if playerManager.isPaused {
                                             playerManager.resume()
                                         } else {
-                                            playerManager.play(story: story, voice: playbackVoice)
+                                            playerManager.play(story: story, voice: playbackVoice == .auto ? nil : playbackVoice)
                                         }
                                     } label: {
                                         ZStack {
@@ -138,6 +181,9 @@ struct FullPlayerView: View {
                                     }
                                     .buttonStyle(.plain)
                                     
+                                    Spacer()
+                                        .frame(width: 24)
+                                    
                                     // Next (disabled for now)
                                     Button {
                                         // TODO: Next story
@@ -148,31 +194,59 @@ struct FullPlayerView: View {
                                             .frame(width: 44, height: 44)
                                     }
                                     .disabled(true)
-                                }
-                                .padding(.vertical, 16)
-                                
-                                // Voice selector
-                                VStack(alignment: .leading, spacing: 12) {
-                                    Text("story.playback.voice".localized)
-                                        .font(AppTheme.roundedFont(.headline, weight: .semibold))
                                     
-                                    Picker("", selection: $playbackVoice) {
-                                        ForEach(Story.Voice.allCases, id: \.self) { voice in
-                                            Text(voice.displayName).tag(voice)
+                                    Spacer()
+                                    
+                                    // Speed selector icon (right of next)
+                                    Menu {
+                                        ForEach(playbackSpeeds, id: \.self) { speed in
+                                            Button {
+                                                playerManager.setPlaybackRate(speed)
+                                            } label: {
+                                                HStack {
+                                                    Text(speedLabel(for: speed))
+                                                    if abs(playerManager.playbackRate - speed) < 0.01 {
+                                                        Image(systemName: "checkmark")
+                                                    }
+                                                }
+                                            }
                                         }
-                                    }
-                                    .pickerStyle(.menu)
-                                    .onChange(of: playbackVoice) { newVoice in
-                                        if playerManager.isPlaying || playerManager.isPaused {
-                                            playerManager.stop()
-                                            playerManager.play(story: story, voice: newVoice == .auto ? nil : newVoice)
-                                        }
+                                    } label: {
+                                        Text(speedLabel(for: playerManager.playbackRate))
+                                            .font(AppTheme.roundedFont(.subheadline, weight: .semibold))
+                                            .foregroundColor(.secondary)
+                                            .frame(width: 44, height: 44)
                                     }
                                 }
                                 .padding(.horizontal, 32)
-                                .padding(.top, 16)
+                                .padding(.vertical, 16)
                                 
-                                Spacer(minLength: 40)
+                                // Story text (like Spotify lyrics)
+                                VStack(alignment: .leading, spacing: 16) {
+                                    Text("story.text".localized)
+                                        .font(AppTheme.roundedFont(.headline, weight: .semibold))
+                                        .foregroundColor(.primary)
+                                    
+                                    ScrollView {
+                                        VStack(alignment: .leading, spacing: 18) {
+                                            ForEach(story.content.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }, id: \.self) { paragraph in
+                                                Text(paragraph.trimmingCharacters(in: .whitespaces))
+                                                    .font(AppTheme.roundedFont(.body))
+                                                    .foregroundColor(.primary.opacity(0.9))
+                                                    .lineSpacing(10)
+                                                    .fixedSize(horizontal: false, vertical: true)
+                                            }
+                                        }
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(.horizontal, 4)
+                                    }
+                                    .frame(maxHeight: max(geometry.size.height * 0.45, 250))
+                                }
+                                .padding(.horizontal, 32)
+                                .padding(.top, 24)
+                                .padding(.bottom, 40)
+                                
+                                Spacer(minLength: 20)
                             }
                         }
                     }
@@ -182,7 +256,6 @@ struct FullPlayerView: View {
                     DragGesture()
                         .onChanged { value in
                             if value.translation.height > 0 {
-                                isDragging = true
                                 dragOffset = value.translation.height
                             }
                         }
@@ -194,7 +267,6 @@ struct FullPlayerView: View {
                             }
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                 dragOffset = 0
-                                isDragging = false
                             }
                         }
                 )
@@ -206,11 +278,6 @@ struct FullPlayerView: View {
         }
     }
     
-    private func formatTime(_ time: TimeInterval) -> String {
-        let minutes = Int(time) / 60
-        let seconds = Int(time) % 60
-        return String(format: "%d:%02d", minutes, seconds)
-    }
 }
 
 #Preview {

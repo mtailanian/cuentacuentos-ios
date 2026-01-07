@@ -19,6 +19,7 @@ class PlayerManager: ObservableObject {
     @Published var currentTime: TimeInterval = 0
     @Published var duration: TimeInterval = 0
     @Published var showFullPlayer = false
+    @Published var playbackRate: Double = 1.0
     
     let player = AudioPlayerViewModel()
     private var progressTimer: Timer?
@@ -72,7 +73,7 @@ class PlayerManager: ObservableObject {
         currentStory = story
         let voiceToUse = voice ?? story.voice ?? .auto
         Task {
-            await player.play(text: story.content, language: story.language, voice: voiceToUse == .auto ? nil : voiceToUse)
+            await player.play(text: story.content, language: story.language, voice: voiceToUse == .auto ? nil : voiceToUse, storyId: story.id)
         }
     }
     
@@ -95,6 +96,11 @@ class PlayerManager: ObservableObject {
         currentTime = time
     }
     
+    func setPlaybackRate(_ rate: Double) {
+        playbackRate = rate
+        player.setPlaybackRate(rate)
+    }
+    
     func restoreLastPlayedStory(from savedStories: [Story]) {
         guard let lastPlayedId = storageService.loadLastPlayedStoryId() else {
             return
@@ -104,10 +110,6 @@ class PlayerManager: ObservableObject {
         if let story = savedStories.first(where: { $0.id == lastPlayedId }) {
             currentStory = story
         }
-    }
-    
-    var hasActiveStory: Bool {
-        currentStory != nil && (isPlaying || isPaused)
     }
 }
 

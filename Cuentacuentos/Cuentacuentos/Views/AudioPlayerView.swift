@@ -2,67 +2,6 @@ import SwiftUI
 import AVFoundation
 import Combine
 
-struct AudioPlayerView: View {
-    let text: String
-    let language: Story.Language
-    let voice: Story.Voice?
-    
-    @StateObject private var player = AudioPlayerViewModel()
-    @StateObject private var localizationManager = LocalizationManager.shared
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            Button(action: {
-                Task {
-                    await player.play(text: text, language: language, voice: voice)
-                }
-            }) {
-                HStack {
-                    if player.isLoading {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(0.8)
-                    } else {
-                        Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                    }
-                    Text(player.isLoading ? "audio.preparing".localized : player.isPlaying ? "audio.playing".localized : "audio.play".localized)
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.green)
-            .disabled(player.isLoading)
-            
-            Button(action: {
-                player.pause()
-            }) {
-                Text("audio.pause".localized)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-            }
-            .buttonStyle(.bordered)
-            .disabled(!player.isPlaying && !player.isPaused)
-            
-            Button(action: {
-                player.stop()
-            }) {
-                Text("audio.stop".localized)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-            }
-            .buttonStyle(.bordered)
-            .disabled(!player.isPlaying && !player.isPaused)
-        }
-    }
-}
-
 class AudioPlayerViewModel: NSObject, ObservableObject {
     @Published var isPlaying = false
     @Published var isPaused = false
@@ -71,19 +10,48 @@ class AudioPlayerViewModel: NSObject, ObservableObject {
     var audioPlayer: AVAudioPlayer?
     private var speechSynthesizer = AVSpeechSynthesizer()
     private let storyService = StoryService()
+    private let storageService = StorageService()
+    private var currentStoryId: String?
     
     override init() {
         super.init()
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
     }
     
-    func play(text: String, language: Story.Language, voice: Story.Voice?) async {
+    func play(text: String, language: Story.Language, voice: Story.Voice?, storyId: String? = nil) async {
+        currentStoryId = storyId
+        
         await MainActor.run {
             isLoading = true
             isPlaying = false
             isPaused = false
         }
         
+        // Check cache first if we have a story ID
+        if let storyId = storyId {
+            if let cachedAudioData = storageService.loadAudioData(for: storyId, voice: voice) {
+                await MainActor.run {
+                    do {
+                        audioPlayer = try AVAudioPlayer(data: cachedAudioData)
+                        audioPlayer?.delegate = self
+                        audioPlayer?.enableRate = true
+                        audioPlayer?.rate = 1.0
+                        audioPlayer?.prepareToPlay()
+                        audioPlayer?.play()
+                        isLoading = false
+                        isPlaying = true
+                        isPaused = false
+                        print("Playing audio from cache")
+                        return
+                    } catch {
+                        print("Error playing cached audio: \(error)")
+                        // Fall through to generate new audio
+                    }
+                }
+            }
+        }
+        
+        // Generate new audio if not cached
         do {
             let audioData = try await storyService.generateTTS(
                 text: text,
@@ -91,10 +59,17 @@ class AudioPlayerViewModel: NSObject, ObservableObject {
                 voice: voice
             )
             
+            // Save to cache if we have a story ID
+            if let storyId = storyId {
+                storageService.saveAudioData(audioData, for: storyId, voice: voice)
+            }
+            
             await MainActor.run {
                 do {
                     audioPlayer = try AVAudioPlayer(data: audioData)
                     audioPlayer?.delegate = self
+                    audioPlayer?.enableRate = true
+                    audioPlayer?.rate = 1.0
                     audioPlayer?.prepareToPlay()
                     audioPlayer?.play()
                     isLoading = false
@@ -144,7 +119,11 @@ class AudioPlayerViewModel: NSObject, ObservableObject {
     }
     
     func resume() {
-        audioPlayer?.play()
+        if let audioPlayer = audioPlayer {
+            audioPlayer.enableRate = true
+            audioPlayer.rate = Float(1.0) // Will be updated by setPlaybackRate if needed
+            audioPlayer.play()
+        }
         speechSynthesizer.continueSpeaking()
         isPlaying = true
         isPaused = false
@@ -161,6 +140,14 @@ class AudioPlayerViewModel: NSObject, ObservableObject {
     func seek(to time: TimeInterval) {
         audioPlayer?.currentTime = time
     }
+    
+    func setPlaybackRate(_ rate: Double) {
+        guard let audioPlayer = audioPlayer else { return }
+        audioPlayer.enableRate = true
+        audioPlayer.rate = Float(rate)
+        // Note: AVSpeechSynthesizer doesn't support rate changes easily,
+        // so rate changes only work with AVAudioPlayer (TTS audio)
+    }
 }
 
 extension AudioPlayerViewModel: AVAudioPlayerDelegate {
@@ -175,14 +162,5 @@ extension AudioPlayerViewModel: AVSpeechSynthesizerDelegate {
         isPlaying = false
         isPaused = false
     }
-}
-
-#Preview {
-    AudioPlayerView(
-        text: "Once upon a time, there was a little girl named Sofia.",
-        language: .spanish,
-        voice: nil
-    )
-    .padding()
 }
 

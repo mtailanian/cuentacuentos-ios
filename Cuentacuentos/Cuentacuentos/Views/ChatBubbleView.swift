@@ -5,6 +5,7 @@ struct ChatBubbleView: View {
     let onSave: (() -> Void)?
     let onShare: (() -> Void)?
     let onToggleFavorite: (() -> Void)?
+    let onQuickAction: ((String) -> Void)? // New callback for quick actions
     @EnvironmentObject var themeManager: ThemeManager
     @ObservedObject private var playerManager = PlayerManager.shared
     
@@ -47,22 +48,7 @@ struct ChatBubbleView: View {
             
             if message.role == .user {
                 // User avatar
-                ZStack {
-                    if let image = profileAvatarImage {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 32, height: 32)
-                            .clipShape(Circle())
-                    } else {
-                        Circle()
-                            .fill(Color(.systemGray4))
-                            .frame(width: 32, height: 32)
-                        Image(systemName: "person.fill")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.white)
-                    }
-                }
+                ProfileAvatar(image: profileAvatarImage, size: 32)
             }
         }
         .frame(maxWidth: .infinity, alignment: message.role == .user ? .trailing : .leading)
@@ -91,7 +77,7 @@ struct ChatBubbleView: View {
                     .font(AppTheme.roundedFont(.headline, weight: .semibold))
                     .foregroundColor(.primary)
                 
-                Text("\("story.for".localized) \(story.name) · \("story.age".localized) \(story.age) · \(story.language.displayName)")
+                Text(story.formattedMetadata)
                     .font(AppTheme.roundedFont(.caption))
                     .foregroundColor(.secondary)
             }
@@ -140,18 +126,12 @@ struct ChatBubbleView: View {
                 .disabled(playerManager.isLoading && playerManager.currentStory?.id == story.id)
                 
                 if let onToggleFavorite = onToggleFavorite {
-                    Button {
-                        HapticManager.notification(type: story.isFavorite ? .warning : .success)
-                        onToggleFavorite()
-                    } label: {
-                        Image(systemName: story.isFavorite ? "heart.fill" : "heart")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(story.isFavorite ? .red : .secondary)
-                            .frame(width: 36, height: 36)
-                            .background(story.isFavorite ? Color.red.opacity(0.1) : Color(.systemGray6))
-                            .cornerRadius(18)
-                    }
-                    .buttonStyle(.plain)
+                    FavoriteButton(
+                        isFavorite: story.isFavorite,
+                        onToggle: onToggleFavorite,
+                        size: 36,
+                        iconSize: 16
+                    )
                 }
                 
                 if let onShare = onShare {
@@ -189,11 +169,40 @@ struct ChatBubbleView: View {
                     .buttonStyle(.plain)
                 }
             }
+            
+            // Quick action chips (only show for assistant messages with stories)
+            if message.role == .assistant, message.story != nil, let onQuickAction = onQuickAction {
+                quickActionChips(onAction: onQuickAction)
+            }
         }
         .padding(16)
         .background(Color(.systemBackground))
         .cornerRadius(16)
         .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+    }
+    
+    @ViewBuilder
+    private func quickActionChips(onAction: @escaping (String) -> Void) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                QuickActionChip(
+                    text: "chat.quickaction.longer".localized,
+                    icon: "arrow.up.circle.fill",
+                    onTap: { onAction("chat.quickaction.longer".localized) }
+                )
+                QuickActionChip(
+                    text: "chat.quickaction.ending".localized,
+                    icon: "arrow.triangle.2.circlepath",
+                    onTap: { onAction("chat.quickaction.ending".localized) }
+                )
+                QuickActionChip(
+                    text: "chat.quickaction.characters".localized,
+                    icon: "person.2.fill",
+                    onTap: { onAction("chat.quickaction.characters".localized) }
+                )
+            }
+            .padding(.horizontal, 4)
+        }
     }
 }
 
@@ -223,7 +232,8 @@ struct RoundedCorner: Shape {
             message: ChatMessage(role: .user, content: "Create a story about a brave knight"),
             onSave: nil,
             onShare: nil,
-            onToggleFavorite: nil
+            onToggleFavorite: nil,
+            onQuickAction: nil
         )
         
         ChatBubbleView(
@@ -245,7 +255,8 @@ struct RoundedCorner: Shape {
             ),
             onSave: {},
             onShare: {},
-            onToggleFavorite: {}
+            onToggleFavorite: {},
+            onQuickAction: { _ in }
         )
     }
     .environmentObject(ThemeManager())

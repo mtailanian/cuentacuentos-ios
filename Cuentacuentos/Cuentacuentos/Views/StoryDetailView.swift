@@ -18,9 +18,9 @@ struct StoryDetailView: View {
         ScrollView {
             StoryDisplayView(
                 story: currentStory,
-                onSave: {},
+                onSave: nil, // No save button for saved stories
                 onShare: {
-                    shareStory(currentStory)
+                    currentStory.share()
                 },
                 onToggleFavorite: {
                     // Update local state immediately for instant UI feedback
@@ -49,16 +49,6 @@ struct StoryDetailView: View {
         let savedStories = storageService.loadStories()
         if let updatedStory = savedStories.first(where: { $0.id == currentStory.id }) {
             currentStory = updatedStory
-        }
-    }
-    
-    private func shareStory(_ story: Story) {
-        let shareText = "\(story.title)\n\n\(story.content)"
-        let activityVC = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
-        
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootViewController = windowScene.windows.first?.rootViewController {
-            rootViewController.present(activityVC, animated: true)
         }
     }
 }
