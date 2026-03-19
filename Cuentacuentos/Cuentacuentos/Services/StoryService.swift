@@ -3,6 +3,28 @@ import Combine
 
 class StoryService: ObservableObject {
     private let apiKey: String
+    private static var hasLoggedMissingAPIKeyWarning = false
+
+    private static func normalizeAPIKey(_ value: String?) -> String {
+        let trimmed = (value ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        // Ignore empty, template placeholder, and unresolved build setting placeholders.
+        guard !trimmed.isEmpty,
+              trimmed != "YOUR_OPENAI_API_KEY_HERE",
+              !trimmed.contains("$(OPENAI_API_KEY)") else {
+            return ""
+        }
+        return trimmed
+    }
+
+    private static func logMissingAPIKeyWarningIfNeeded() {
+        guard !hasLoggedMissingAPIKeyWarning else {
+            return
+        }
+        hasLoggedMissingAPIKeyWarning = true
+
+        print("Warning: OPENAI_API_KEY not found. Story generation will fail.")
+        print("Set OPENAI_API_KEY in Configs/LocalSecrets.xcconfig, Info.plist, or as an environment variable.")
+    }
     
     init() {
         // Get API key from environment or Info.plist
@@ -10,24 +32,15 @@ class StoryService: ObservableObject {
         var foundKey = ""
         
         // Try environment variable first
-        if let envKey = ProcessInfo.processInfo.environment["OPENAI_API_KEY"], !envKey.isEmpty {
-            foundKey = envKey
-        }
-        // Try Info.plist
-        else if let path = Bundle.main.path(forResource: "Info", ofType: "plist"),
-                let plist = NSDictionary(contentsOfFile: path),
-                let plistKey = plist["OPENAI_API_KEY"] as? String,
-                !plistKey.isEmpty,
-                plistKey != "YOUR_OPENAI_API_KEY_HERE" {
-            foundKey = plistKey
+        foundKey = Self.normalizeAPIKey(ProcessInfo.processInfo.environment["OPENAI_API_KEY"])
+
+        // Try Info.plist from the app bundle's resolved info dictionary
+        if foundKey.isEmpty,
+           let plistKey = Bundle.main.object(forInfoDictionaryKey: "OPENAI_API_KEY") as? String {
+            foundKey = Self.normalizeAPIKey(plistKey)
         }
         
         self.apiKey = foundKey
-        
-        if foundKey.isEmpty {
-            print("Warning: OPENAI_API_KEY not found. Story generation will fail.")
-            print("Please set OPENAI_API_KEY in Info.plist or as an environment variable.")
-        }
     }
     
     func generateStory(
@@ -39,6 +52,7 @@ class StoryService: ObservableObject {
         language: Story.Language
     ) async throws -> StoryResponse {
         guard !apiKey.isEmpty else {
+            Self.logMissingAPIKeyWarningIfNeeded()
             throw StoryServiceError.missingAPIKey
         }
         
@@ -134,6 +148,7 @@ class StoryService: ObservableObject {
         voice: Story.Voice?
     ) async throws -> Data {
         guard !apiKey.isEmpty else {
+            Self.logMissingAPIKeyWarningIfNeeded()
             throw StoryServiceError.missingAPIKey
         }
         
@@ -189,7 +204,7 @@ enum StoryServiceError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .missingAPIKey:
-            return "OpenAI API key is missing. Please configure it in your environment or Info.plist."
+            return "OpenAI API key is missing. Configure OPENAI_API_KEY in Configs/LocalSecrets.xcconfig, your environment, or Info.plist."
         case .invalidResponse:
             return "Invalid response from the server."
         case .httpError(let code):

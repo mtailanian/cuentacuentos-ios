@@ -1,0 +1,3 @@
+// Release build settings
+// Intentionally left empty to avoid shipping local API secrets.
+OPENAI_API_KEY =
